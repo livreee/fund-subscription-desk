@@ -1,0 +1,121 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="description" content="基金申购额度与组合限额测算工具" />
+    <title>申购额度测算台</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=Manrope:wght@400;500;600;700;800&family=Noto+Sans+SC:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
+    <link rel="stylesheet" href="styles.css" />
+  </head>
+  <body>
+    <div class="app-shell">
+      <header class="topbar">
+        <div class="brand-block">
+          <div class="brand-mark"><span>↗</span></div>
+          <div>
+            <p class="eyebrow">FUND CONTROL DESK</p>
+            <h1>申购额度测算台</h1>
+          </div>
+        </div>
+        <div class="topbar-meta">
+          <span class="live-dot"></span>
+          <span>数据源：天天基金 · <strong id="lastUpdated">等待查询</strong></span>
+        </div>
+      </header>
+
+      <main>
+        <section class="hero-section">
+          <div class="hero-copy">
+            <p class="section-kicker">DAILY SUBSCRIPTION LIMIT</p>
+            <h2>把每一笔申购<br /><em>算清楚。</em></h2>
+            <p class="hero-intro">查询单只基金的当日申购上限，或导入组合明细，快速定位真正限制组合的那一行。</p>
+            <div class="hero-stats">
+              <div><strong>01</strong><span>单只基金</span></div>
+              <div><strong>02</strong><span>组合测算</span></div>
+              <div><strong>∞</strong><span>无限额识别</span></div>
+            </div>
+          </div>
+          <div class="hero-ribbon">
+            <span>计算规则</span>
+            <p>行限额贡献 = 主选最高申购额 ÷ 主选占比 + 备选最高申购额 ÷ 备选占比</p>
+          </div>
+        </section>
+
+        <section class="workspace-grid">
+          <article class="panel lookup-panel">
+            <div class="panel-header">
+              <div>
+                <p class="section-kicker">01 / LOOKUP</p>
+                <h3>单只基金查询</h3>
+              </div>
+              <span class="panel-index">A</span>
+            </div>
+            <form id="lookupForm" class="lookup-form">
+              <label for="fundCode">基金代码</label>
+              <div class="input-row">
+                <input id="fundCode" name="fundCode" inputmode="numeric" maxlength="6" placeholder="例如 110011" autocomplete="off" />
+                <button type="submit" class="primary-button"><span>查询额度</span><b>→</b></button>
+              </div>
+              <p class="field-hint">支持 6 位公募基金代码，结果按当日公开申购状态展示。</p>
+            </form>
+            <div id="lookupResult" class="result-card empty-result">
+              <div class="result-placeholder"><span class="placeholder-icon">⌁</span><p>输入代码后查看申购上限</p></div>
+            </div>
+          </article>
+
+          <article class="panel import-panel">
+            <div class="panel-header">
+              <div>
+                <p class="section-kicker">02 / PORTFOLIO</p>
+                <h3>组合限额测算</h3>
+              </div>
+              <span class="panel-index">B</span>
+            </div>
+            <div class="import-toolbar">
+              <div class="file-drop" id="fileDrop">
+                <input id="csvInput" type="file" accept=".xlsx,.xls,.csv,.txt" hidden />
+                <span class="upload-icon">⇧</span>
+                <div><strong>导入组合表格</strong><small>按模板填写四列，导入后自动测算</small></div>
+                <button type="button" id="chooseFile" class="ghost-button">选择文件</button>
+              </div>
+              <div class="import-actions">
+                <a href="组合导入模板.xlsx" download class="template-button">下载模板</a>
+                <button type="button" id="clearRows" class="text-button">清空</button>
+              </div>
+            </div>
+            <p class="import-status" id="importStatus">模板列：主选基金代码、主选占比、备选基金代码、备选占比。占比可填写 50% 或 0.5。</p>
+            <div class="table-wrap">
+              <table>
+                <thead><tr><th>#</th><th>主选基金</th><th>主选占比</th><th>备选基金</th><th>备选占比</th><th>行限额贡献</th><th></th></tr></thead>
+                <tbody id="portfolioBody"></tbody>
+              </table>
+              <button type="button" id="addRow" class="add-row"><span>＋</span>添加一行</button>
+            </div>
+            <div class="portfolio-footer">
+              <div class="legend"><span class="legend-dot warning"></span>正在计算的数据会以黄色标记</div>
+              <button type="button" id="calculatePortfolio" class="primary-button compact"><span>测算组合上限</span><b>→</b></button>
+            </div>
+          </article>
+        </section>
+
+        <section class="summary-panel" id="summaryPanel">
+          <div class="summary-label"><span class="summary-icon">⌘</span><div><p class="section-kicker">PORTFOLIO CEILING</p><h3>组合最高申购限额</h3></div></div>
+          <div class="summary-value" id="summaryValue">— <small>待测算</small></div>
+          <div class="summary-note" id="summaryNote">导入组合并测算后，取所有行限额贡献的最大值。</div>
+        </section>
+
+        <section class="notes-grid">
+          <div class="note-item"><span>01</span><p><strong>括号内“购买上限”</strong><br />代表基金当日单笔或单日最高申购金额；页面没有展示时按无限额处理。</p></div>
+          <div class="note-item"><span>02</span><p><strong>暂停申购优先级最高</strong><br />接口返回暂停状态时，不参与额度相加，直接显示“暂停申购”。</p></div>
+          <div class="note-item"><span>03</span><p><strong>数据仅供交易前核对</strong><br />基金公告和销售机构规则可能实时变化，请以实际下单页面为准。</p></div>
+        </section>
+      </main>
+      <footer class="footer">申购额度测算台 <span>·</span> v1.0 <span>·</span> 数据来自公开行情接口</footer>
+    </div>
+    <script src="xlsx.full.min.js"></script>
+    <script src="app.js"></script>
+  </body>
+</html>

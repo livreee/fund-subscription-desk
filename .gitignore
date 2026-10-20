@@ -1,0 +1,25 @@
+# 本地浏览器自动化运行目录
+.edge-investing/
+.edge-investing2/
+se-metadata.json
+
+# matplotlib 缓存
+.mplconfig/
+
+# Python 缓存
+__pycache__/
+*.pyc
+
+# 临时测试截图
+investing_test.png
+
+# Excel 临时锁定文件
+~$*
+
+# 本地指数相关性分析脚本（与网站无关）
+build_correlation_table.py
+build_daily_correlation_table.py
+
+# 系统文件
+.DS_Store
+Thumbs.db
