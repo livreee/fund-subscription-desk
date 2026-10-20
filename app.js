@@ -104,6 +104,18 @@ $("#addRow").addEventListener("click", () => addRow());
 $("#clearRows").addEventListener("click", () => { rows.splice(0, rows.length); renderRows(); updateSummary(null); });
 $("#chooseFile").addEventListener("click", () => $("#csvInput").click());
 $("#csvInput").addEventListener("change", (event) => { const file = event.target.files[0]; if (file) readCodes(file); });
+function downloadTemplate() {
+  if (!window.XLSX) { window.location.href = "组合导入模板.csv"; return; }
+  const worksheet = XLSX.utils.aoa_to_sheet([
+    ["主选基金代码", "主选占比", "备选基金代码", "备选占比"],
+    ["110011", "50%", "", ""]
+  ]);
+  worksheet["!cols"] = [{ wch: 14 }, { wch: 12 }, { wch: 14 }, { wch: 12 }];
+  const workbook = XLSX.utils.book_new();
+  XLSX.utils.book_append_sheet(workbook, worksheet, "组合导入模板");
+  XLSX.writeFile(workbook, "组合导入模板.xlsx");
+}
+$("#downloadTemplate").addEventListener("click", (event) => { event.preventDefault(); downloadTemplate(); });
 $("#fileDrop").addEventListener("dragover", (event) => { event.preventDefault(); $("#fileDrop").classList.add("dragging"); });
 $("#fileDrop").addEventListener("dragleave", () => $("#fileDrop").classList.remove("dragging"));
 $("#fileDrop").addEventListener("drop", (event) => { event.preventDefault(); $("#fileDrop").classList.remove("dragging"); const file = event.dataTransfer.files[0]; if (file) readCodes(file); });
