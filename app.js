@@ -222,9 +222,9 @@ async function calculatePortfolio() {
   renderRows();
   const numeric = results.map((r) => r.numeric).filter((v) => typeof v === "number");
   const hasUnlimited = results.some((r) => r.state === "unlimited");
-  updateSummary(hasUnlimited ? "unlimited" : numeric.length ? Math.max(...numeric) : "pending", rows.length);
+  updateSummary(numeric.length ? Math.min(...numeric) : hasUnlimited ? "unlimited" : "pending", rows.length);
   $("#calculatePortfolio").disabled = false; $("#lastUpdated").textContent = `${nowText()} 更新`;
 }
-function updateSummary(value, count = 0) { const valueEl = $("#summaryValue"); const note = $("#summaryNote"); if (value === null) { valueEl.innerHTML = `— <small>待测算</small>`; note.textContent = "导入组合并测算后，取所有行限额贡献的最大值。"; return; } if (value === "unlimited") { valueEl.innerHTML = `∞ <small>无限额</small>`; note.textContent = `已完成 ${count} 行测算；存在未展示购买上限的行，因此组合不设额度上限。`; return; } if (value === "pending") { valueEl.innerHTML = `— <small>待确认</small>`; note.textContent = "请检查基金代码，或稍后重试公开接口。"; return; } valueEl.innerHTML = `${formatMoney(value)} <small>组合上限</small>`; note.textContent = `已完成 ${count} 行测算，取其中限额贡献最大值作为组合上限。`; }
+function updateSummary(value, count = 0) { const valueEl = $("#summaryValue"); const note = $("#summaryNote"); if (value === null) { valueEl.innerHTML = `— <small>待测算</small>`; note.textContent = "导入组合并测算后，取所有行限额贡献的最小值。"; return; } if (value === "unlimited") { valueEl.innerHTML = `∞ <small>无限额</small>`; note.textContent = `已完成 ${count} 行测算；所有有效行均不设额度上限。`; return; } if (value === "pending") { valueEl.innerHTML = `— <small>待确认</small>`; note.textContent = "请检查基金代码，或稍后重试公开接口。"; return; } valueEl.innerHTML = `${formatMoney(value)} <small>组合上限</small>`; note.textContent = `已完成 ${count} 行测算，取其中限额贡献最小值作为组合上限。`; }
 $("#calculatePortfolio").addEventListener("click", calculatePortfolio);
 addRow(); addRow();
