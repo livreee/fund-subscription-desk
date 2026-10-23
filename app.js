@@ -37,11 +37,12 @@ function renderRows() {
 function parseLimit(text) {
   const normalized = String(text || "").replace(/,/g, "");
   if (/暂停申购|停止申购|暂不开放/.test(normalized)) return { paused: true };
-  if (/不限|无限额|大额/.test(normalized)) return { value: "unlimited" };
-  const matches = normalized.match(/(?:购买上限|申购上限|限额)[^\d]{0,12}(\d+(?:\.\d+)?)(万|万元|元)?/i) || normalized.match(/(\d+(?:\.\d+)?)(万|万元|元)/i);
-  if (!matches) return null;
+  const matches = normalized.match(/(?:购买上限|申购上限|限额)[^\d]{0,12}(\d+(?:\.\d+)?)(亿元|亿|万元|万|元)?/i) || normalized.match(/(\d+(?:\.\d+)?)(亿元|亿|万元|万|元)/i);
+  if (!matches) return /不限|无限额/.test(normalized) ? { value: "unlimited" } : null;
   const number = Number(matches[1]);
-  return { value: matches[2] && matches[2].includes("万") ? number * 10000 : number };
+  const unit = matches[2] || "元";
+  const value = number * (unit.includes("亿") ? 100000000 : unit.includes("万") ? 10000 : 1);
+  return { value, displayValue: number, displayUnit: unit };
 }
 
 async function fetchFund(code) {
@@ -67,7 +68,7 @@ async function fetchFund(code) {
         result.paused = true;
         result.value = null;
       } else if (fee) {
-        result.value = fee.value;
+        Object.assign(result, fee);
       } else if (statusText || /fundBuyStatus/.test(text)) {
         result.value = "unlimited";
       }
@@ -86,7 +87,7 @@ function showLookup(data) {
   const statusText = data.paused ? "暂停申购" : data.value === "unlimited" ? "开放申购" : "限额申购";
   result.className = "result-card";
   result.innerHTML = `<div class="result-head"><div><p class="result-name">${data.name}</p><span class="result-code">${data.code}</span></div><span class="status-badge ${data.paused ? "paused" : ""}">${statusText}</span></div>
-    <div class="limit-box"><span class="limit-number">${data.paused ? "暂停申购" : data.value === "unlimited" ? "∞" : data.value === null ? "待确认" : Number(data.value).toLocaleString("zh-CN", { maximumFractionDigits: 2 })}</span><span class="limit-unit">${data.paused ? "" : data.value === "unlimited" ? "无限额" : data.value === null ? "" : "元 / 当日"}</span></div>
+    <div class="limit-box"><span class="limit-number">${data.paused ? "暂停申购" : data.value === "unlimited" ? "∞" : data.value === null ? "待确认" : Number(data.displayValue ?? data.value).toLocaleString("zh-CN", { maximumFractionDigits: 2 })}</span><span class="limit-unit">${data.paused ? "" : data.value === "unlimited" ? "无限额" : data.value === null ? "" : `${data.displayUnit || "元"} / 当日`}</span></div>
     <div class="result-meta"><span>${data.source === "待确认" ? "接口暂不可用，建议以销售页面为准" : "已读取公开基金数据"}</span><span>${nowText()} 更新</span></div>`;
 }
 

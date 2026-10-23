@@ -26,12 +26,19 @@ def parse_fund(code):
     status = re.search(r"交易状态[：:]</span>\s*<span[^>]*>([\s\S]*?)</span>", html, re.I)
     status_text = re.sub(r"<[^>]+>", "", status.group(1)).strip() if status else ""
     paused = bool(re.search(r"暂停申购|停止申购|暂不开放", status_text))
-    limit = re.search(r"(?:购买上限|申购上限|限额)[^0-9]{0,16}([0-9]+(?:\.[0-9]+)?)(万|万元|元)?", status_text)
+    limit = re.search(r"(?:购买上限|申购上限|限额)[^0-9]{0,16}([0-9]+(?:\.[0-9]+)?)(亿元|亿|万元|万|元)?", status_text)
     if limit:
-        value = float(limit.group(1)) * (10000 if limit.group(2) and "万" in limit.group(2) else 1)
+        amount = float(limit.group(1))
+        unit = limit.group(2) or "元"
+        multiplier = 100000000 if "亿" in unit else 10000 if "万" in unit else 1
+        value = amount * multiplier
+        display_value = amount
+        display_unit = unit
     else:
         value = "unlimited" if status_text and not paused else None
-    result = {"code": code, "name": title.group(1).strip() if title else f"基金 {code}", "value": value, "paused": paused, "source": "东方财富基金详情页", "statusText": status_text}
+        display_value = None
+        display_unit = None
+    result = {"code": code, "name": title.group(1).strip() if title else f"基金 {code}", "value": value, "displayValue": display_value, "displayUnit": display_unit, "paused": paused, "source": "东方财富基金详情页", "statusText": status_text}
     CACHE[code] = (time.time(), result)
     return result
 
